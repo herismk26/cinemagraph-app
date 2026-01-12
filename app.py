@@ -11,15 +11,24 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- 2. SETUP API KEY (BARU - Kompatibel Lokal & Cloud) ---
-# Cek apakah jalan di Streamlit Cloud (pakai st.secrets)
-if "GROQ_API_KEY" in st.secrets:
-    api_key = st.secrets["GROQ_API_KEY"]
-# Jika tidak, coba cari di file .env (untuk di komputer lokal)
-else:
+# --- 2. SETUP API KEY (VERSI ANTI-CRASH) ---
+api_key = None
+
+# Coba ambil dari Streamlit Cloud Secrets dulu
+try:
+    if "GROQ_API_KEY" in st.secrets:
+        api_key = st.secrets["GROQ_API_KEY"]
+except FileNotFoundError:
+    pass # Lanjut ke cara berikutnya jika secrets tidak ditemukan
+
+# Jika belum ketemu, coba ambil dari file .env (Lokal)
+if not api_key:
     load_dotenv()
     api_key = os.getenv("GROQ_API_KEY")
 
+# Cek akhir
+if not api_key:
+    st.warning("⚠️ API Key belum ditemukan. Jika di Cloud, harap set 'Secrets'. Jika di Lokal, cek .env")
 
 # --- 4. FUNGSI GENERATE (GAYA VISUAL YANG KUAT) ---
 def generate_prompts(topic, style):
@@ -149,4 +158,5 @@ if generate_btn and topic:
 
 elif generate_btn and not topic:
     st.warning("⚠️ Harap masukkan topik video terlebih dahulu!")
+
 
